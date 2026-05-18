@@ -83,21 +83,13 @@ df = df.sort_values(by=["Tanggal_Clean"])
     if "Jam" in df.columns:
         df = df.sort_values(by=["Tanggal_Clean", "Jam"])
     else:
-        df = df.sort_values(by=["Tanggal_Clean"])
-        
-    return df
-
-# =========================
+# ==========================================
 # LOAD DATAFRAME EXECUTION
-# =========================
-GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
+# ==========================================
 df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
 df.columns = df.columns.str.strip().str.lower()
 df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
-df = df.sort_values(by=["tanggal_clean"])
-
-# =========================
-# HEADER UTAMA
+df = df.sort_values(by=["tanggal_clean"])# HEADER UTAMA
 # =========================
 st.title("📅 Agenda Kegiatan Kantor")
 st.write(f"Waktu Sistem: {datetime.now().strftime('%d-%m-%Y | %H:%M')}")
