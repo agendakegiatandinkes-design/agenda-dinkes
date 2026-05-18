@@ -34,11 +34,16 @@ st.markdown(css_code, unsafe_html=True)
 # ==========================================
 # LOAD DATAFRAME EXECUTION
 # ==========================================
-df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
-df.columns = df.columns.str.strip().str.lower()
-df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
-df = df.sort_values(by=["tanggal_clean"])
-
+import os
+csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
+if csv_files:
+    df = pd.read_csv(csv_files[0])
+    df.columns = df.columns.str.strip().str.lower()
+    df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
+    df = df.sort_values(by=["tanggal_clean"])
+else:
+    st.error("Waduh! File database CSV belum di-upload ke GitHub. Silakan upload file CSV agenda Anda terlebih dahulu.")
+    st.stop()
 # ==========================================
 # HEADER UTAMA
 # ==========================================
