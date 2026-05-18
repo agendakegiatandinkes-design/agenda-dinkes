@@ -3,61 +3,33 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# ==========================================
-# CONFIG UTAMA APLIKASI
-# ==========================================
+# 1. Pengaturan Halaman Utama
 st.set_page_config(
     page_title="Agenda Kegiatan Kantor",
     page_icon="📅",
     layout="wide"
 )
 
-# ==========================================
-# CUSTOM CSS (PASTI AMAN)
-# ==========================================
-st.markdown(
-    """
-    <style>
-    [data-testid='stHeader'] {background-color: rgba(0,0,0,0);} 
-    .block-container {padding-top: 2rem; padding-bottom: 2rem;} 
-    h1 {font-size: 24px !important; font-weight: 700; color: #1E293B; margin-bottom: 5px;} 
-    .meta-text {font-size: 13px; color: #64748B; margin-bottom: 20px;} 
-    .card {background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);} 
-    .card-title {font-size: 16px !important; font-weight: 600; color: #0F172A; margin-bottom: 6px;} 
-    .card-meta {font-size: 13px; color: #475569; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;} 
-    .badge {display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 6px; text-transform: uppercase;} 
-    .badge-terlaksana {background-color: #DCFCE7; color: #15803D;} 
-    .badge-mendatang {background-color: #DBEAFE; color: #1D4ED8;} 
-    .badge-hariini {background-color: #FEF3C7; color: #D97706;}
-    </style>
-    """,
-    unsafe_html=True
-)
-
-# ==========================================
-# MEMUAT FILE DATABASE AGENDA
-# ==========================================
-# Otomatis mencari file CSV di dalam folder repositori Anda
+# 2. Memuat File Database CSV Otomatis
 csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
 
 if csv_files:
     df = pd.read_csv(csv_files[0])
-    df.columns = df.columns.str.strip()  # Membersihkan spasi gaib pada nama kolom
+    df.columns = df.columns.str.strip()  # Hapus spasi gaib pada nama kolom
     df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
     df = df.sort_values(by=["Tanggal_Clean"])
 else:
-    st.error("Waduh! File database CSV belum ditemukan di GitHub. Pastikan file 'Database Agenda Kegiatan - Sheet1.csv' sudah di-upload.")
+    st.error("File database CSV belum ditemukan di GitHub. Silakan upload file CSV agenda Anda terlebih dahulu.")
     st.stop()
 
-# ==========================================
-# HEADER UTAMA APLIKASI
-# ==========================================
+# 3. Judul Aplikasi
 st.title("📅 Agenda Kegiatan Kantor")
 st.write(f"Waktu Sistem: {datetime.now().strftime('%d-%m-%Y | %H:%M')}")
 st.markdown("---")
 
 today = pd.Timestamp.today().normalize()
 
+# Kamus Bahasa Indonesia untuk Waktu
 hari_indonesia = {
     "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
     "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu", "Sunday": "Minggu"
@@ -75,16 +47,15 @@ def format_tgl_indo(dt):
     thn = dt.year
     return f"{hari}, {tgl} {bln} {thn}"
 
-# ==========================================
-# TABS NAVIGASI UTAMA
-# ==========================================
+# 4. Membuat Menu Tab Navigasi
 tab1, tab2, tab3 = st.tabs(["📌 Semua Agenda", "🚀 Akan Datang", "✅ Selesai"])
 
-def render_cards(dataframe):
+def tampilkan_agenda(dataframe):
     if dataframe.empty:
         st.info("Tidak ada agenda dalam kategori ini.")
         return
-    for _, row in dataframe.iterrows():
+        
+    for index, row in dataframe.iterrows():
         tgl_clean = row['Tanggal_Clean']
         tgl_display = format_tgl_indo(tgl_clean)
         jam_display = str(row.get('Jam', '-')) if pd.notna(row.get('Jam')) else '-'
@@ -93,42 +64,38 @@ def render_cards(dataframe):
         pakaian = str(row.get('Pakaian', '-'))
         keterangan = str(row.get('Keterangan', '-'))
         
+        # Menentukan teks status secara manual dan aman
         if pd.isna(tgl_clean):
-            status_badge = '<span class="badge badge-mendatang">Agenda</span>'
+            status = "🔵 AGENDA"
         elif tgl_clean.normalize() < today:
-            status_badge = '<span class="badge badge-terlaksana">Selesai</span>'
+            status = "🟢 SELESAI"
         elif tgl_clean.normalize() == today:
-            status_badge = '<span class="badge badge-hariini">Hari Ini</span>'
+            status = "🟠 HARI INI"
         else:
-            status_badge = '<span class="badge badge-mendatang">Akan Datang</span>'
+            status = "🔵 AKAN DATANG"
             
-        card_html = (
-            f"<div class='card'>"
-            f"<div style='display: flex; justify-content: space-between; align-items: start;'>"
-            f"<div class='card-title'>{kegiatan}</div>"
-            f"{status_badge}"
-            f"</div>"
-            f"<div class='card-meta'>📅 <b>{tgl_display}</b> &nbsp;|&nbsp; ⏰ {jam_display} WIB</div>"
-            f"<div class='card-meta'>📍 Tempat: {tempat}</div>"
-            f"<div class='card-meta'>👔 Pakaian: {pakaian}</div>"
-            f"<div class='card-meta' style='color: #64748B; margin-top: 4px; font-style: italic;'>📝 Ket: {keterangan}</div>"
-            f"</div>"
-        )
-        st.markdown(card_html, unsafe_html=True)
+        # Tampilan Kotak Informasi Bersih bawaan Streamlit
+        with st.expander(f"{status} | {kegiatan}", expanded=True):
+            st.write(f"📅 *Hari/Tanggal:* {tgl_display}")
+            st.write(f"⏰ *Waktu/Jam:* {jam_display} WITA")
+            st.write(f"📍 *Tempat:* {tempat}")
+            st.write(f"👔 *Pakaian:* {pakaian}")
+            if keterangan != "-":
+                st.write(f"📝 *Keterangan:* {keterangan}")
 
 with tab1:
-    render_cards(df)
+    tampilkan_agenda(df)
 
 with tab2:
     if not df.empty:
         df_mendatang = df[df["Tanggal_Clean"].normalize() >= today]
     else:
         df_mendatang = df
-    render_cards(df_mendatang)
+    tampilkan_agenda(df_mendatang)
 
 with tab3:
     if not df.empty:
         df_selesai = df[df["Tanggal_Clean"].normalize() < today]
     else:
         df_selesai = df
-    render_cards(df_selesai)
+    tampilkan_agenda(df_selesai)
