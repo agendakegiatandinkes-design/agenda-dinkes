@@ -70,12 +70,9 @@ GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
 # KONVERSI LINK GOOGLE SHEET KE CSV
 # =========================
 def convert_google_sheet_url(url):
-    try:
-        sheet_id = url.split("/d/")[1].split("/")[0]
-        return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-    except IndexError:
-        st.error("Format Link Google Sheets tidak valid. Pastikan link disalin dengan benar.")
-        st.stop()
+df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
+df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
+df = df.sort_values(by=["Tanggal_Clean"])
 
 # =========================
 # LOAD DATA
