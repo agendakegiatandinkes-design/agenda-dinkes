@@ -81,7 +81,11 @@ def convert_google_sheet_url(url):
 # LOAD DATA
 # =========================
 @st.cache_data(ttl=60) # Cache diperbarui setiap 1 menit agar data baru cepat muncul
-def load_data():
+@st.cache_data(ttl=60)
+    df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
+    df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
+    df = df.sort_values(by=["Tanggal_Clean"])
+    return df
     df = pd.read_csv(GOOGLE_SHEET_URL)
     
     # Memastikan kolom Tanggal terbaca dengan benar
