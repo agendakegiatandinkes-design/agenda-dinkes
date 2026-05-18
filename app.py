@@ -110,7 +110,7 @@ def load_data():
 # =========================
 # LOAD DATAFRAME EXECUTION
 # =========================
- GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
+  GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
     st.info("👋 Selamat Datang! Silakan masukkan link Google Sheets Anda pada kode app.py terlebih dahulu.")
     st.stop()
 
