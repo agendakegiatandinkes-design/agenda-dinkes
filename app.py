@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 
 # ==========================================
-# CONFIG UTAMA
+# CONFIG UTAMA APLIKASI
 # ==========================================
 st.set_page_config(
     page_title="Agenda Kegiatan Kantor",
@@ -13,27 +13,43 @@ st.set_page_config(
 )
 
 # ==========================================
-# CUSTOM CSS (AMAN UNTUK PYTHON 3.14)
+# CUSTOM CSS (STRUKTUR MULTI-BARIS AMAN PYTHON 3.14)
 # ==========================================
-css_aman = "<style>[data-testid='stHeader'] {background-color: rgba(0,0,0,0);} .block-container {padding-top: 2rem; padding-bottom: 2rem;} h1 {font-size: 24px !important; font-weight: 700; color: #1E293B; margin-bottom: 5px;} .meta-text {font-size: 13px; color: #64748B; margin-bottom: 20px;} .card {background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);} .card-title {font-size: 16px !important; font-weight: 600; color: #0F172A; margin-bottom: 6px;} .card-meta {font-size: 13px; color: #475569; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;} .badge {display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 6px; text-transform: uppercase;} .badge-terlaksana {background-color: #DCFCE7; color: #15803D;} .badge-mendatang {background-color: #DBEAFE; color: #1D4ED8;} .badge-hariini {background-color: #FEF3C7; color: #D97706;}</style>"
-st.markdown(css_aman, unsafe_html=True)
+st.markdown(
+    """
+    <style>
+    [data-testid='stHeader'] {background-color: rgba(0,0,0,0);} 
+    .block-container {padding-top: 2rem; padding-bottom: 2rem;} 
+    h1 {font-size: 24px !important; font-weight: 700; color: #1E293B; margin-bottom: 5px;} 
+    .meta-text {font-size: 13px; color: #64748B; margin-bottom: 20px;} 
+    .card {background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);} 
+    .card-title {font-size: 16px !important; font-weight: 600; color: #0F172A; margin-bottom: 6px;} 
+    .card-meta {font-size: 13px; color: #475569; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;} 
+    .badge {display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 6px; text-transform: uppercase;} 
+    .badge-terlaksana {background-color: #DCFCE7; color: #15803D;} 
+    .badge-mendatang {background-color: #DBEAFE; color: #1D4ED8;} 
+    .badge-hariini {background-color: #FEF3C7; color: #D97706;}
+    </style>
+    """,
+    unsafe_html=True
+)
 
 # ==========================================
-# OTOMATIS MENCARI & MEMUAT FILE DATABASE CSV
+# OTOMATIS MENCARI FILE DATABASE CSV
 # ==========================================
 csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
 
 if csv_files:
     df = pd.read_csv(csv_files[0])
-    df.columns = df.columns.str.strip().str.lower()
-    df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
-    df = df.sort_values(by=["tanggal_clean"])
+    df.columns = df.columns.str.strip()  # Menghapus spasi gaib di judul kolom
+    df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
+    df = df.sort_values(by=["Tanggal_Clean"])
 else:
-    st.error("Waduh! File database CSV belum ditemukan di GitHub. Silakan upload file CSV agenda Anda ke folder yang sama dengan app.py terlebih dahulu.")
+    st.error("Waduh! File database CSV belum ditemukan di GitHub. Silakan upload file CSV agenda Anda terlebih dahulu.")
     st.stop()
 
 # ==========================================
-# HEADER APLIKASI
+# HEADER UTAMA
 # ==========================================
 st.title("📅 Agenda Kegiatan Kantor")
 st.write(f"Waktu Sistem: {datetime.now().strftime('%d-%m-%Y | %H:%M')}")
@@ -59,7 +75,7 @@ def format_tgl_indo(dt):
     return f"{hari}, {tgl} {bln} {thn}"
 
 # ==========================================
-# TABS NAVIGASI UTAMA
+# TABS NAVIGASI
 # ==========================================
 tab1, tab2, tab3 = st.tabs(["📌 Semua Agenda", "🚀 Akan Datang", "✅ Selesai"])
 
@@ -68,13 +84,13 @@ def render_cards(dataframe):
         st.info("Tidak ada agenda dalam kategori ini.")
         return
     for _, row in dataframe.iterrows():
-        tgl_clean = row['tanggal_clean']
+        tgl_clean = row['Tanggal_Clean']
         tgl_display = format_tgl_indo(tgl_clean)
-        jam_display = str(row.get('jam', '-')) if pd.notna(row.get('jam')) else '-'
-        kegiatan = str(row.get('kegiatan', 'Tanpa Nama Kegiatan'))
-        tempat = str(row.get('tempat', '-'))
-        pakaian = str(row.get('pakaian', '-'))
-        keterangan = str(row.get('keterangan', '-'))
+        jam_display = str(row.get('Jam', '-')) if pd.notna(row.get('Jam')) else '-'
+        kegiatan = str(row.get('Kegiatan', 'Tanpa Nama Kegiatan'))
+        tempat = str(row.get('Tempat', '-'))
+        pakaian = str(row.get('Pakaian', '-'))
+        keterangan = str(row.get('Keterangan', '-'))
         
         if pd.isna(tgl_clean):
             status_badge = '<span class="badge badge-mendatang">Agenda</span>'
@@ -104,14 +120,14 @@ with tab1:
 
 with tab2:
     if not df.empty:
-        df_mendatang = df[df["tanggal_clean"].normalize() >= today]
+        df_mendatang = df[df["Tanggal_Clean"].normalize() >= today]
     else:
         df_mendatang = df
     render_cards(df_mendatang)
 
 with tab3:
     if not df.empty:
-        df_selesai = df[df["tanggal_clean"].normalize() < today]
+        df_selesai = df[df["Tanggal_Clean"].normalize() < today]
     else:
         df_selesai = df
     render_cards(df_selesai)
