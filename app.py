@@ -12,23 +12,24 @@ st.set_page_config(
 )
 
 # ==========================================
-# CUSTOM CSS MOBILE FRIENDLY
+# CUSTOM CSS MOBILE FRIENDLY (PYTHON 3.14 FIX)
 # ==========================================
-st.markdown("""
-<style>
-    [data-testid="stHeader"] {background-color: rgba(0,0,0,0);}
-    .block-container {padding-top: 2rem; padding-bottom: 2rem;}
-    h1 {font-size: 24px !important; font-weight: 700; color: #1E293B; margin-bottom: 5px;}
-    .meta-text {font-size: 13px; color: #64748B; margin-bottom: 20px;}
-    .card {background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
-    .card-title {font-size: 16px !important; font-weight: 600; color: #0F172A; margin-bottom: 6px;}
-    .card-meta {font-size: 13px; color: #475569; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;}
-    .badge {display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 6px; text-transform: uppercase;}
-    .badge-terlaksana {background-color: #DCFCE7; color: #15803D;}
-    .badge-mendatang {background-color: #DBEAFE; color: #1D4ED8;}
-    .badge-hariini {background-color: #FEF3C7; color: #D97706;}
-</style>
-""", unsafe_html=True)
+css_code = (
+    "<style>"
+    "[data-testid='stHeader'] {background-color: rgba(0,0,0,0);}"
+    ".block-container {padding-top: 2rem; padding-bottom: 2rem;}"
+    "h1 {font-size: 24px !important; font-weight: 700; color: #1E293B; margin-bottom: 5px;}"
+    ".meta-text {font-size: 13px; color: #64748B; margin-bottom: 20px;}"
+    ".card {background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}"
+    ".card-title {font-size: 16px !important; font-weight: 600; color: #0F172A; margin-bottom: 6px;}"
+    ".card-meta {font-size: 13px; color: #475569; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;}"
+    ".badge {display: inline-block; padding: 3px 8px; font-size: 11px; font-weight: 600; border-radius: 6px; text-transform: uppercase;}"
+    ".badge-terlaksana {background-color: #DCFCE7; color: #15803D;}"
+    ".badge-mendatang {background-color: #DBEAFE; color: #1D4ED8;}"
+    ".badge-hariini {background-color: #FEF3C7; color: #D97706;}"
+    "</style>"
+)
+st.markdown(css_code, unsafe_html=True)
 
 # ==========================================
 # LOAD DATAFRAME EXECUTION
@@ -91,18 +92,19 @@ def render_cards(dataframe):
         else:
             status_badge = '<span class="badge badge-mendatang">Akan Datang</span>'
             
-        st.markdown(f"""
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
-                <div class="card-title">{kegiatan}</div>
-                {status_badge}
-            </div>
-            <div class="card-meta">📅 <b>{tgl_display}</b> &nbsp;|&nbsp; ⏰ {jam_display} WIB</div>
-            <div class="card-meta">📍 Tempat: {tempat}</div>
-            <div class="card-meta">👔 Pakaian: {pakaian}</div>
-            <div class="card-meta" style="color: #64748B; margin-top: 4px; font-style: italic;">📝 Ket: {keterangan}</div>
-        </div>
-        """, unsafe_html=True)
+        card_html = (
+            f"<div class='card'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: start;'>"
+            f"<div class='card-title'>{kegiatan}</div>"
+            f"{status_badge}"
+            f"</div>"
+            f"<div class='card-meta'>📅 <b>{tgl_display}</b> &nbsp;|&nbsp; ⏰ {jam_display} WIB</div>"
+            f"<div class='card-meta'>📍 Tempat: {tempat}</div>"
+            f"<div class='card-meta'>👔 Pakaian: {pakaian}</div>"
+            f"<div class='card-meta' style='color: #64748B; margin-top: 4px; font-style: italic;'>📝 Ket: {keterangan}</div>"
+            f"</div>"
+        )
+        st.markdown(card_html, unsafe_html=True)
 
 with tab1:
     render_cards(df)
