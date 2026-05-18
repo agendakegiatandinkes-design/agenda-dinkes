@@ -15,9 +15,12 @@ csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
 
 if csv_files:
     df = pd.read_csv(csv_files[0])
-    df.columns = df.columns.str.strip()  # Hapus spasi gaib pada nama kolom
-    df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
-    df = df.sort_values(by=["Tanggal_Clean"])
+    # Mengubah semua nama kolom menjadi huruf kecil secara otomatis untuk mencegah KeyError
+    df.columns = df.columns.str.strip().str.lower()
+    
+    # Membaca kolom 'tanggal' yang sudah diubah ke huruf kecil
+    df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
+    df = df.sort_values(by=["tanggal_clean"])
 else:
     st.error("File database CSV belum ditemukan di GitHub. Silakan upload file CSV agenda Anda terlebih dahulu.")
     st.stop()
@@ -56,15 +59,17 @@ def tampilkan_agenda(dataframe):
         return
         
     for index, row in dataframe.iterrows():
-        tgl_clean = row['Tanggal_Clean']
+        tgl_clean = row['tanggal_clean']
         tgl_display = format_tgl_indo(tgl_clean)
-        jam_display = str(row.get('Jam', '-')) if pd.notna(row.get('Jam')) else '-'
-        kegiatan = str(row.get('Kegiatan', 'Tanpa Nama Kegiatan'))
-        tempat = str(row.get('Tempat', '-'))
-        pakaian = str(row.get('Pakaian', '-'))
-        keterangan = str(row.get('Keterangan', '-'))
         
-        # Menentukan teks status secara manual dan aman
+        # Mengambil data dengan huruf kecil semua agar cocok dengan database Anda
+        jam_display = str(row.get('jam', '-')) if pd.notna(row.get('jam')) else '-'
+        kegiatan = str(row.get('kegiatan', 'Tanpa Nama Kegiatan'))
+        tempat = str(row.get('tempat', '-'))
+        pakaian = str(row.get('pakaian', '-'))
+        keterangan = str(row.get('keterangan', '-'))
+        
+        # Menentukan status agenda
         if pd.isna(tgl_clean):
             status = "🔵 AGENDA"
         elif tgl_clean.normalize() < today:
@@ -74,7 +79,7 @@ def tampilkan_agenda(dataframe):
         else:
             status = "🔵 AKAN DATANG"
             
-        # Tampilan Kotak Informasi Bersih bawaan Streamlit
+        # Tampilan Kotak Informasi bawaan Streamlit (Sangat Aman)
         with st.expander(f"{status} | {kegiatan}", expanded=True):
             st.write(f"📅 *Hari/Tanggal:* {tgl_display}")
             st.write(f"⏰ *Waktu/Jam:* {jam_display} WITA")
@@ -88,14 +93,14 @@ with tab1:
 
 with tab2:
     if not df.empty:
-        df_mendatang = df[df["Tanggal_Clean"].normalize() >= today]
+        df_mendatang = df[df["tanggal_clean"].normalize() >= today]
     else:
         df_mendatang = df
     tampilkan_agenda(df_mendatang)
 
 with tab3:
     if not df.empty:
-        df_selesai = df[df["Tanggal_Clean"].normalize() < today]
+        df_selesai = df[df["tanggal_clean"].normalize() < today]
     else:
         df_selesai = df
     tampilkan_agenda(df_selesai)
