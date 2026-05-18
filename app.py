@@ -110,11 +110,9 @@ def load_data():return
 # LOAD DATAFRAME EXECUTION
 # =========================
 GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
-try:
-    df = load_data()
-except Exception as e:
-    st.error("Gagal mengambil data dari Google Sheets. Pastikan akses Google Sheets sudah diatur ke 'Siapa saja yang memiliki link' (Viewer).")
-    st.stop()
+df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
+df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
+df = df.sort_values(by=["Tanggal_Clean"])
 
 # =========================
 # HEADER UTAMA
