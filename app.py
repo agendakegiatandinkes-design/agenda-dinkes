@@ -15,14 +15,16 @@ csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
 
 if csv_files:
     df = pd.read_csv(csv_files[0])
-    # Mengubah nama kolom menjadi huruf kecil & hapus spasi gaib
+    # Mengubah semua nama kolom menjadi huruf kecil & hapus spasi gaib
     df.columns = df.columns.str.strip().str.lower()
     
-    # Proteksi: Mengisi kolom data yang kosong (NaN) dengan teks aman agar tidak TypeError
-    df = df.fillna("-")
-    
-    # Membaca kolom 'tanggal' secara aman
+    # Memastikan semua data dibaca sebagai string/teks terlebih dahulu agar aman dari tipe data kosong
+    for col in df.columns:
+        df[col] = df[col].astype(str).str.strip()
+        
+    # Mengonversi kolom tanggal ke format datetime secara aman
     df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
+    # Urutkan berdasarkan tanggal terlama ke terbaru
     df = df.sort_values(by=["tanggal_clean"])
 else:
     st.error("File database CSV belum ditemukan di GitHub. Silakan upload file CSV agenda Anda terlebih dahulu.")
@@ -33,7 +35,8 @@ st.title("📅 Agenda Kegiatan Kantor")
 st.write(f"Waktu Sistem: {datetime.now().strftime('%d-%m-%Y | %H:%M')}")
 st.markdown("---")
 
-today = pd.Timestamp.today().normalize()
+# Mengambil tanggal hari ini tanpa jam
+today_date = datetime.now().date()
 
 # Kamus Bahasa Indonesia untuk Waktu
 hari_indonesia = {
@@ -46,7 +49,7 @@ bulan_indonesia = {
 }
 
 def format_tgl_indo(dt):
-    if pd.isna(dt) or dt == "-": return "-"
+    if pd.isna(dt): return "-"
     try:
         hari = hari_indonesia[dt.strftime('%A')]
         tgl = dt.day
@@ -59,33 +62,50 @@ def format_tgl_indo(dt):
 # 4. Menu Tab Navigasi
 tab1, tab2, tab3 = st.tabs(["📌 Semua Agenda", "🚀 Akan Datang", "✅ Selesai"])
 
-def tampilkan_agenda(dataframe):
-    if dataframe.empty:
-        st.info("Tidak ada agenda dalam kategori ini.")
-        return
-        
+def tampilkan_agenda(dataframe, filter_kategori="semua"):
+    ada_data = False
+    
     for index, row in dataframe.iterrows():
         tgl_clean = row['tanggal_clean']
-        tgl_display = format_tgl_indo(tgl_clean)
         
-        # Mengambil data dengan jaminan string aman
-        jam_display = str(row.get('jam', '-'))
-        kegiatan = str(row.get('kegiatan', 'Tanpa Nama Kegiatan'))
-        tempat = str(row.get('tempat', '-'))
-        pakaian = str(row.get('pakaian', '-'))
-        keterangan = str(row.get('keterangan', '-'))
-        
-        # Menentukan status waktu agenda
-        if pd.isna(tgl_clean) or tgl_clean == "-":
+        # Penentuan Status Berdasarkan Tanggal secara Manual (Sangat Aman)
+        if pd.isna(tgl_clean):
             status = "🔵 AGENDA"
-        elif tgl_clean.normalize() < today:
-            status = "🟢 SELESAI"
-        elif tgl_clean.normalize() == today:
-            status = "🟠 HARI INI"
+            kategori_waktu = "mendatang"
         else:
-            status = "🔵 AKAN DATANG"
+            agenda_date = tgl_clean.date()
+            if agenda_date < today_date:
+                status = "🟢 SELESAI"
+                kategori_waktu = "selesai"
+            elif agenda_date == today_date:
+                status = "🟠 HARI INI"
+                kategori_waktu = "mendatang"
+            else:
+                status = "🔵 AKAN DATANG"
+                kategori_waktu = "mendatang"
+        
+        # Filter tampilan berdasarkan tab yang dipilih user
+        if filter_kategori != "semua" and filter_kategori != kategori_waktu:
+            continue
             
-        # Tampilan Box Streamlit Ekspander (100% Bebas Error)
+        ada_data = True
+        tgl_display = format_tgl_indo(tgl_clean) if not pd.isna(tgl_clean) else row.get('tanggal', '-')
+        
+        # Mengambil data teks, ganti "nan" bawaan pandas menjadi "-"
+        def bersihkan_teks(val):
+            text = str(val)
+            return "-" if text == "nan" or text == "" else text
+
+        jam_display = bersihkan_teks(row.get('jam'))
+        kegiatan = str(row.get('kegiatan'))
+        if kegiatan == "nan" or kegiatan == "": 
+            kegiatan = "Tanpa Nama Kegiatan"
+            
+        tempat = bersihkan_teks(row.get('tempat'))
+        pakaian = bersihkan_teks(row.get('pakaian'))
+        keterangan = bersihkan_teks(row.get('keterangan'))
+        
+        # Tampilan Kotak Informasi bawaan Streamlit (100% Kebal Error)
         with st.expander(f"{status} | {kegiatan}", expanded=True):
             st.write(f"📅 *Hari/Tanggal:* {tgl_display}")
             st.write(f"⏰ *Waktu/Jam:* {jam_display} WITA")
@@ -93,22 +113,15 @@ def tampilkan_agenda(dataframe):
             st.write(f"👔 *Pakaian:* {pakaian}")
             if keterangan != "-":
                 st.write(f"📝 *Keterangan:* {keterangan}")
+                
+    if not ada_data:
+        st.info("Tidak ada agenda dalam kategori ini.")
 
 with tab1:
-    tampilkan_agenda(df)
+    tampilkan_agenda(df, "semua")
 
 with tab2:
-    if not df.empty:
-        # Menyaring data yang hari ini atau masa depan secara aman
-        df_mendatang = df[df["tanggal_clean"].normalize() >= today] if hasattr(df["tanggal_clean"], 'dt') else df
-    else:
-        df_mendatang = df
-    tampilkan_agenda(df_mendatang)
+    tampilkan_agenda(df, "mendatang")
 
 with tab3:
-    if not df.empty:
-        # Menyaring data masa lalu secara aman
-        df_selesai = df[df["tanggal_clean"].normalize() < today] if hasattr(df["tanggal_clean"], 'dt') else df
-    else:
-        df_selesai = df
-    tampilkan_agenda(df_selesai)
+    tampilkan_agenda(df, "selesai")
