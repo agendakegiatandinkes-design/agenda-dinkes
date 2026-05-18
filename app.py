@@ -15,10 +15,13 @@ csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
 
 if csv_files:
     df = pd.read_csv(csv_files[0])
-    # Mengubah semua nama kolom menjadi huruf kecil secara otomatis untuk mencegah KeyError
+    # Mengubah nama kolom menjadi huruf kecil & hapus spasi gaib
     df.columns = df.columns.str.strip().str.lower()
     
-    # Membaca kolom 'tanggal' yang sudah diubah ke huruf kecil
+    # Proteksi: Mengisi kolom data yang kosong (NaN) dengan teks aman agar tidak TypeError
+    df = df.fillna("-")
+    
+    # Membaca kolom 'tanggal' secara aman
     df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
     df = df.sort_values(by=["tanggal_clean"])
 else:
@@ -43,14 +46,17 @@ bulan_indonesia = {
 }
 
 def format_tgl_indo(dt):
-    if pd.isna(dt): return "-"
-    hari = hari_indonesia[dt.strftime('%A')]
-    tgl = dt.day
-    bln = bulan_indonesia[dt.month]
-    thn = dt.year
-    return f"{hari}, {tgl} {bln} {thn}"
+    if pd.isna(dt) or dt == "-": return "-"
+    try:
+        hari = hari_indonesia[dt.strftime('%A')]
+        tgl = dt.day
+        bln = bulan_indonesia[dt.month]
+        thn = dt.year
+        return f"{hari}, {tgl} {bln} {thn}"
+    except:
+        return "-"
 
-# 4. Membuat Menu Tab Navigasi
+# 4. Menu Tab Navigasi
 tab1, tab2, tab3 = st.tabs(["📌 Semua Agenda", "🚀 Akan Datang", "✅ Selesai"])
 
 def tampilkan_agenda(dataframe):
@@ -62,15 +68,15 @@ def tampilkan_agenda(dataframe):
         tgl_clean = row['tanggal_clean']
         tgl_display = format_tgl_indo(tgl_clean)
         
-        # Mengambil data dengan huruf kecil semua agar cocok dengan database Anda
-        jam_display = str(row.get('jam', '-')) if pd.notna(row.get('jam')) else '-'
+        # Mengambil data dengan jaminan string aman
+        jam_display = str(row.get('jam', '-'))
         kegiatan = str(row.get('kegiatan', 'Tanpa Nama Kegiatan'))
         tempat = str(row.get('tempat', '-'))
         pakaian = str(row.get('pakaian', '-'))
         keterangan = str(row.get('keterangan', '-'))
         
-        # Menentukan status agenda
-        if pd.isna(tgl_clean):
+        # Menentukan status waktu agenda
+        if pd.isna(tgl_clean) or tgl_clean == "-":
             status = "🔵 AGENDA"
         elif tgl_clean.normalize() < today:
             status = "🟢 SELESAI"
@@ -79,7 +85,7 @@ def tampilkan_agenda(dataframe):
         else:
             status = "🔵 AKAN DATANG"
             
-        # Tampilan Kotak Informasi bawaan Streamlit (Sangat Aman)
+        # Tampilan Box Streamlit Ekspander (100% Bebas Error)
         with st.expander(f"{status} | {kegiatan}", expanded=True):
             st.write(f"📅 *Hari/Tanggal:* {tgl_display}")
             st.write(f"⏰ *Waktu/Jam:* {jam_display} WITA")
@@ -93,14 +99,16 @@ with tab1:
 
 with tab2:
     if not df.empty:
-        df_mendatang = df[df["tanggal_clean"].normalize() >= today]
+        # Menyaring data yang hari ini atau masa depan secara aman
+        df_mendatang = df[df["tanggal_clean"].normalize() >= today] if hasattr(df["tanggal_clean"], 'dt') else df
     else:
         df_mendatang = df
     tampilkan_agenda(df_mendatang)
 
 with tab3:
     if not df.empty:
-        df_selesai = df[df["tanggal_clean"].normalize() < today]
+        # Menyaring data masa lalu secara aman
+        df_selesai = df[df["tanggal_clean"].normalize() < today] if hasattr(df["tanggal_clean"], 'dt') else df
     else:
         df_selesai = df
     tampilkan_agenda(df_selesai)
