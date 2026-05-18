@@ -3,159 +3,168 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# 1. Pengaturan Halaman Utama
+# 1. Pengaturan Halaman Utama (Wajib di bagian paling atas)
 st.set_page_config(
     page_title="Agenda Dinas Kesehatan Kota Parepare",
-    page_icon="📅",
+    page_icon="🏢",
     layout="wide"
 )
 
-# Custom CSS untuk mempercantik tampilan tabel agar mirip dengan gambar acuan
-st.markdown("""
+# 2. Gaya Tampilan Modern (Menggunakan st.html agar aman dari eror pustaka)
+st.html("""
     <style>
-    .block-container { padding-top: 2rem; }
-    .status-selesai {
-        background-color: #E8F5E9; color: #2E7D32; padding: 4px 12px;
-        border-radius: 12px; font-weight: bold; font-size: 13px; text-align: center;
+    .block-container { padding-top: 1.5rem; }
+    .status-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 13px;
+        text-align: center;
+        min-width: 100px;
     }
-    .status-datang {
-        background-color: #FFEBEE; color: #C62828; padding: 4px 12px;
-        border-radius: 12px; font-weight: bold; font-size: 13px; text-align: center;
+    .selesai { background-color: #E8F5E9; color: #2E7D32; }
+    .hari-ini { background-color: #FFF3E0; color: #E65100; }
+    .akan-datang { background-color: #E3F2FD; color: #0D47A1; }
+    
+    .tabel-agenda {
+        width: 100%; 
+        border-collapse: collapse; 
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
     }
-    .status-hariini {
-        background-color: #FFF3E0; color: #EF6C00; padding: 4px 12px;
-        border-radius: 12px; font-weight: bold; font-size: 13px; text-align: center;
+    .tabel-agenda th { 
+        background-color: #F8F9FA; 
+        color: #4A5568; 
+        font-weight: bold; 
+        padding: 14px;
+        border-bottom: 2px solid #EDF2F7;
+        text-align: left;
+        font-size: 13px;
+        letter-spacing: 0.5px;
     }
-    th { background-color: #F8F9FA !important; color: #495057 !important; font-weight: bold !important; }
+    .tabel-agenda td { 
+        padding: 16px 14px; 
+        border-bottom: 1px solid #EDF2F7;
+        vertical-align: top;
+    }
     </style>
-""", unsafe_html=True)
+""")
 
-# 2. Memuat File Database CSV
+# 3. Otomatis Memuat File Database CSV
 csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
 
 if csv_files:
     df = pd.read_csv(csv_files[0])
     df.columns = df.columns.str.strip().str.lower()
     
-    # Bersihkan data kosong (NaN) awal
+    # Bersihkan data kosong
     for col in df.columns:
         df[col] = df[col].astype(str).str.strip().replace("nan", "-")
         
     df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
     df = df.sort_values(by=["tanggal_clean"])
 else:
-    st.error("File database CSV belum ditemukan di GitHub.")
+    st.error("Waduh! File database CSV belum ditemukan di folder GitHub Anda.")
     st.stop()
 
-# 3. Header Atas
-st.title("🏢 Dinas Kesehatan Kota Parepare")
-st.subheader("📅 Agenda Kegiatan Kantor")
-st.markdown("---")
-
-# 4. FILTER PERIODE WAKTU (Baris Pertama)
-st.write("📁 *Periode Waktu:*")
-col_tgl1, col_tgl2, col_tgl3, _ = st.columns([1, 1, 1, 5])
-with col_tgl1:
-    btn_semua = st.button("Semua Waktu", use_container_width=True, type="primary")
-with col_tgl2:
-    btn_hariini = st.button("Hari Ini", use_container_width=True)
-with col_tgl3:
-    btn_bulanini = st.button("Bulan Ini", use_container_width=True)
-
-# Logika Filter Waktu Berdasarkan Tombol Klik
+# 4. Filter Logika Waktu Sistem
 today_date = datetime.now().date()
 current_month = datetime.now().month
 current_year = datetime.now().year
 
-if "filter_waktu" not in st.session_state:
-    st.session_state.filter_waktu = "semua"
+# Header Utama Aplikasi
+st.subheader("🏢 Dinas Kesehatan Kota Parepare")
+st.markdown("---")
 
-if btn_semua: st.session_state.filter_waktu = "semua"
-if btn_hariini: st.session_state.filter_waktu = "hari_ini"
-if btn_bulanini: st.session_state.filter_waktu = "bulan_ini"
+# 5. FILTER PERIODE WAKTU
+st.markdown("📅 *Periode Waktu:*")
+col_t1, col_t2, col_t3, _ = st.columns([1, 1, 1, 5])
+with col_t1: btn_semua = st.button("Semua", use_container_width=True)
+with col_t2: btn_hariini = st.button("Hari Ini", use_container_width=True)
+with col_t3: btn_bulanini = st.button("Bulan Ini", use_container_width=True)
 
-# Jalankan Filter Waktu ke Dataframe
-if st.session_state.filter_waktu == "hari_ini":
+if "f_waktu" not in st.session_state:
+    st.session_state.f_waktu = "semua"
+
+if btn_semua: st.session_state.f_waktu = "semua"
+if btn_hariini: st.session_state.f_waktu = "hari_ini"
+if btn_bulanini: st.session_state.f_waktu = "bulan_ini"
+
+if st.session_state.f_waktu == "hari_ini":
     df_filtered = df[df["tanggal_clean"].dt.date == today_date]
-    st.info("Menampilkan Agenda Hari Ini")
-elif st.session_state.filter_waktu == "bulan_ini":
+elif st.session_state.f_waktu == "bulan_ini":
     df_filtered = df[(df["tanggal_clean"].dt.month == current_month) & (df["tanggal_clean"].dt.year == current_year)]
-    st.info("Menampilkan Agenda Bulan Ini")
 else:
     df_filtered = df.copy()
 
-# 5. FILTER KATEGORI BIDANG (Baris Kedua)
-st.write("🔍 *Filter Kategori Bidang:*")
-
-# Ambil daftar bidang unik dari kolom 'penanggung jawab' atau 'bidang' (sesuaikan nama kolom di CSV Anda)
+# 6. FILTER KATEGORI BIDANG
+st.markdown("🔍 *Filter Kategori Bidang:*")
 kolom_bidang = 'penanggung jawab' if 'penanggung jawab' in df.columns else ('bidang' if 'bidang' in df.columns else None)
 
 if kolom_bidang:
-    daftar_bidang = ["Semua"] + [b for b in df[kolom_bidang].unique() if b != "-"]
-    pilihan_bidang = st.radio("", daftar_bidang, horizontal=True)
+    raw_bidang = [b for b in df[kolom_bidang].unique() if b != "-"]
+    daftar_bidang = ["Semua"] + raw_bidang
     
-    if pilihan_bidang != "Semua":
+    # Menggunakan komponen pill penanda agar gaya visual tombolnya estetik mendatar
+    pilihan_bidang = st.pills("", daftar_bidang, selection_mode="single", default="Semua")
+    
+    if pilihan_bidang and pilihan_bidang != "Semua":
         df_filtered = df_filtered[df_filtered[kolom_bidang] == pilihan_bidang]
 
 st.markdown("---")
 
-# Kamus Waktu Indonesia
+# Terjemahan Format Waktu Lokal
 hari_indo = {"Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu", "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu", "Sunday": "Minggu"}
-bulan_indo = {1: "Mei", 2: "Februari", 3: "Maret", 4: "April", 5: "Mei", 6: "Juni", 7: "Juli", 8: "Agustus", 9: "September", 10: "Oktober", 11: "November", 12: "Desember"}
+bulan_indo = {1: "Januari", 2: "Februari", 3: "Maret", 4: "April", 5: "Mei", 6: "Juni", 7: "Juli", 8: "Agustus", 9: "September", 10: "Oktober", 11: "November", 12: "Desember"}
 
-# 6. PEMBUATAN TABEL TAMPILAN MODERN
+# 7. STRUKTUR GENERATOR TABEL HTML TAMPILAN BARU
 if df_filtered.empty:
-    st.info("Tidak ada agenda yang cocok dengan filter yang dipilih.")
+    st.info("Tidak ada agenda kegiatan yang cocok dengan filter penapisan saat ini.")
 else:
-    # Siapkan data baris demi baris untuk dimasukkan ke tabel HTML
     html_rows = ""
-    
     for idx, row in df_filtered.iterrows():
         tgl_clean = row['tanggal_clean']
         
-        # Format Tanggal Indo
         if pd.isna(tgl_clean):
             tgl_display = row.get('tanggal', '-')
-            status_html = '<div class="status-datang">Akan Datang</div>'
+            status_html = '<span class="status-badge akan-datang">Akan Datang</span>'
         else:
             agenda_date = tgl_clean.date()
             hari = hari_indo.get(tgl_clean.strftime('%A'), tgl_clean.strftime('%A'))
             bln = bulan_indo.get(tgl_clean.month, "")
-            tgl_display = f"{hari}, {tgl_clean.day} {bln} {tgl_clean.year}"
+            tgl_display = f"{tgl_clean.day} {bln} {tgl_clean.year}"
             
-            # Cek Status
             if agenda_date < today_date:
-                status_html = '<div class="status-selesai">Selesai</div>'
+                status_html = '<span class="status-badge selesai">Selesai</span>'
             elif agenda_date == today_date:
-                status_html = '<div class="status-hariini">Hari Ini</div>'
+                status_html = '<span class="status-badge hari-ini">Hari Ini</span>'
             else:
-                status_html = '<div class="status-datang">Akan Datang</div>'
+                status_html = '<span class="status-badge akan-datang">Akan Datang</span>'
         
-        # Ambil Data Teks
         jam = f"🕒 Jam {row.get('jam', '-')}" if row.get('jam', '-') != "-" else "-"
         kegiatan = row.get('kegiatan', '-')
         tempat = f"📍 {row.get('tempat', '-')}" if row.get('tempat', '-') != "-" else "-"
         pj = row.get(kolom_bidang, '-') if kolom_bidang else "-"
         
-        # Gabungkan data ke struktur baris tabel HTML
         html_rows += f"""
         <tr>
-            <td style="padding:15px; vertical-align:top; font-size:14px;"><b>{tgl_display}</b><br><small style="color:gray;">{jam}</small></td>
-            <td style="padding:15px; vertical-align:top; font-size:14px;"><b>{kegiatan}</b><br><small style="color:gray;">{tempat}</small></td>
-            <td style="padding:15px; vertical-align:top; font-size:14px; color:#495057;">{pj}</td>
-            <td style="padding:15px; vertical-align:middle;">{status_html}</td>
+            <td><b>{tgl_display}</b><br><small style="color:#718096;">{jam}</small></td>
+            <td><span style="color:#2D3748; font-weight:600; font-size:15px;">{kegiatan}</span><br><small style="color:#A0AEC0;">{tempat}</small></td>
+            <td><span style="background-color:#EDF2F7; padding:4px 10px; border-radius:6px; font-size:13px; color:#4A5568;">{pj}</span></td>
+            <td style="text-align:center;">{status_html}</td>
         </tr>
         """
 
-    # Cetak struktur utuh tabel ke halaman web
-    tabel_lengkap = f"""
-    <table style="width:100%; border-collapse: collapse; border: 1px solid #E0E0E0; background-color: white;">
+    tabel_final = f"""
+    <table class="tabel-agenda">
         <thead>
-            <tr style="border-bottom: 2px solid #E0E0E0; text-align: left;">
-                <th style="padding:12px;">WAKTU & TANGGAL</th>
-                <th style="padding:12px;">DETAIL KEGIATAN</th>
-                <th style="padding:12px;">PENANGGUNG JAWAB</th>
-                <th style="padding:12px; text-align:center; width:150px;">STATUS</th>
+            <tr>
+                <th style="width:18%;">WAKTU & TANGGAL</th>
+                <th style="width:45%;">DETAIL KEGIATAN</th>
+                <th style="width:22%;">PENANGGUNG JAWAB</th>
+                <th style="width:15%; text-align:center;">STATUS</th>
             </tr>
         </thead>
         <tbody>
@@ -163,4 +172,4 @@ else:
         </tbody>
     </table>
     """
-    st.markdown(tabel_lengkap, unsafe_html=True)
+    st.html(tabel_final)
