@@ -64,7 +64,7 @@ st.markdown("""
 # =========================
 # GANTI DENGAN LINK GOOGLE SHEET ANDA
 # =========================
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1RT83xRRMYtm94ELESuQk2xNM5Zz4Fkkp4ZFthl7Yb08/export?format=csv"
+sheet_url = "Database Agenda Kegiatan - Sheet1.csv"
 
 # =========================
 # KONVERSI LINK GOOGLE SHEET KE CSV
