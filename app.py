@@ -64,7 +64,7 @@ st.markdown("""
 # =========================
 # GANTI DENGAN LINK GOOGLE SHEET ANDA
 # =========================
-sheet_url = "Database Agenda Kegiatan - Sheet1.csv"
+GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
 
 # =========================
 # KONVERSI LINK GOOGLE SHEET KE CSV
@@ -110,7 +110,7 @@ def load_data():
 # =========================
 # LOAD DATAFRAME EXECUTION
 # =========================
-if GOOGLE_SHEET_URL == "SALIN_LINK_GOOGLE_SHEETS_ANDA_DI_SINI":
+if GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
     st.info("👋 Selamat Datang! Silakan masukkan link Google Sheets Anda pada kode app.py terlebih dahulu.")
     st.stop()
 
