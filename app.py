@@ -82,8 +82,7 @@ def convert_google_sheet_url(url):
 # =========================
 @st.cache_data(ttl=60) # Cache diperbarui setiap 1 menit agar data baru cepat muncul
 def load_data():
-    csv_url = convert_google_sheet_url(GOOGLE_SHEET_URL)
-    df = pd.read_csv(csv_url)
+    df = pd.read_csv(GOOGLE_SHEET_URL)
     
     # Memastikan kolom Tanggal terbaca dengan benar
     df["Tanggal_Clean"] = pd.to_datetime(
