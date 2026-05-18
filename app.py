@@ -64,7 +64,7 @@ st.markdown("""
 # =========================
 # GANTI DENGAN LINK GOOGLE SHEET ANDA
 # =========================
-GOOGLE_SHEET_URL ="https://docs.google.com/spreadsheets/d/1sak_dmVop0yWI9tOCtj_rfqcapUI3CekXGduUHE7sMo/export?format=csv""
+GOOGLE_SHEET_URL ="https://docs.google.com/spreadsheets/d/1sak_dmVop0yWI9tOCtj_rfqcapUI3CekXGduUHE7sMo/export?format=csv"
 
 # =========================
 # KONVERSI LINK GOOGLE SHEET KE CSV
