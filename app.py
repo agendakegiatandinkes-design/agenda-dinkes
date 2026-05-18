@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# CUSTOM CSS (STRUKTUR MULTI-BARIS AMAN PYTHON 3.14)
+# CUSTOM CSS (PASTI AMAN)
 # ==========================================
 st.markdown(
     """
@@ -35,21 +35,22 @@ st.markdown(
 )
 
 # ==========================================
-# OTOMATIS MENCARI FILE DATABASE CSV
+# MEMUAT FILE DATABASE AGENDA
 # ==========================================
+# Otomatis mencari file CSV di dalam folder repositori Anda
 csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
 
 if csv_files:
     df = pd.read_csv(csv_files[0])
-    df.columns = df.columns.str.strip()  # Menghapus spasi gaib di judul kolom
+    df.columns = df.columns.str.strip()  # Membersihkan spasi gaib pada nama kolom
     df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
     df = df.sort_values(by=["Tanggal_Clean"])
 else:
-    st.error("Waduh! File database CSV belum ditemukan di GitHub. Silakan upload file CSV agenda Anda terlebih dahulu.")
+    st.error("Waduh! File database CSV belum ditemukan di GitHub. Pastikan file 'Database Agenda Kegiatan - Sheet1.csv' sudah di-upload.")
     st.stop()
 
 # ==========================================
-# HEADER UTAMA
+# HEADER UTAMA APLIKASI
 # ==========================================
 st.title("📅 Agenda Kegiatan Kantor")
 st.write(f"Waktu Sistem: {datetime.now().strftime('%d-%m-%Y | %H:%M')}")
@@ -75,7 +76,7 @@ def format_tgl_indo(dt):
     return f"{hari}, {tgl} {bln} {thn}"
 
 # ==========================================
-# TABS NAVIGASI
+# TABS NAVIGASI UTAMA
 # ==========================================
 tab1, tab2, tab3 = st.tabs(["📌 Semua Agenda", "🚀 Akan Datang", "✅ Selesai"])
 
