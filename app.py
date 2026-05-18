@@ -108,8 +108,9 @@ def load_data():return
 # =========================
 GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
 df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
-df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
-df = df.sort_values(by=["Tanggal_Clean"])
+df.columns = df.columns.str.strip().str.lower()
+df["tanggal_clean"] = pd.to_datetime(df["tanggal"], format="%d-%m-%Y", errors="coerce")
+df = df.sort_values(by=["tanggal_clean"])
 
 # =========================
 # HEADER UTAMA
