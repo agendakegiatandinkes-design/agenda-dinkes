@@ -69,25 +69,9 @@ GOOGLE_SHEET_URL = "Database Agenda Kegiatan - Sheet1.csv"
 # =========================
 # KONVERSI LINK GOOGLE SHEET KE CSV
 # =========================
-def convert_google_sheet_url(url):
 df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
-df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
-df = df.sort_values(by=["Tanggal_Clean"])
-
-# =========================
-# LOAD DATA
-# =========================
-def load_data():return
-    df = pd.read_csv("Database Agenda Kegiatan - Sheet1.csv")
-    df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce")
-    df = df.sort_values(by=["Tanggal_Clean"])
-    # Memastikan kolom Tanggal terbaca dengan benar
-    df["Tanggal_Clean"] = pd.to_datetime(
-        df["Tanggal"],
-        format="%d-%m-%Y",
-        errors="coerce"
-    )
-    
+df["Tanggal_Clean"] = pd.to_datetime(df["Tanggal"], format="%d-%m-%Y", errors="coerce").dt.date
+df = df.sort_values(by=["Tanggal_Clean"])    
     # Mengisi kolom Hari otomatis berdasarkan input tanggal
     hari_indonesia = {
         "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
